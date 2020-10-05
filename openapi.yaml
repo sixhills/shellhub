@@ -1,0 +1,145 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+        "title": "ShellHub",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/login": {
+            "description": "",
+            "post": {
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LoginResponse"
+                                }
+                            }
+                        },
+                        "description": "Login Successful"
+                    }
+                },
+                "summary": "Login"
+            }
+        },
+        "/api/devices": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "description": "",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "page",
+                        "description": "",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "status",
+                        "description": "Valid values: accepted,rejected,pending",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    }
+                ],
+                "security": [
+                    {
+                        "Auth": [
+                        ]
+                    }
+                ],
+                "summary": "Get devices"
+            }
+        },
+        "/api/devices/:uid/accept": {
+            "put": {
+                "responses": {
+                    "200": {
+
+                    }
+                },
+                "summary": "Accept device"
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "LoginRequest": {
+                "description": "",
+                "required": [
+                    "username",
+                    "password"
+                ],
+                "type": "object",
+                "properties": {
+                    "username": {
+                        "description": "",
+                        "type": "string"
+                    },
+                    "password": {
+                        "description": "",
+                        "type": "string"
+                    }
+                }
+            },
+            "LoginResponse": {
+                "description": "",
+                "required": [
+                    "token",
+                    "user",
+                    "name",
+                    "tenant",
+                    "email"
+                ],
+                "type": "object",
+                "properties": {
+                    "token": {
+                        "description": "",
+                        "type": "string"
+                    },
+                    "user": {
+                        "description": "",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "",
+                        "type": "string"
+                    },
+                    "tenant": {
+                        "description": "",
+                        "type": "string"
+                    },
+                    "email": {
+                        "description": "",
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "Auth": {
+                "scheme": "bearer",
+                "type": "http"
+            }
+        }
+    }
+}
