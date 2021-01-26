@@ -42,7 +42,7 @@ type Store interface {
 	UpdateFirewallRule(ctx context.Context, id string, rule models.FirewallRuleUpdate) (*models.FirewallRule, error)
 	DeleteFirewallRule(ctx context.Context, id string) error
 	GetStats(ctx context.Context) (*models.Stats, error)
-	GetRecord(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error)
+	GetRecord(ctx context.Context, uid models.UID, ID string) ([]models.RecordedSession, int, error)
 	UpdateUID(ctx context.Context, oldUID models.UID, newUID models.UID) error
 	UpdateUser(ctx context.Context, username, email, currentPassword, newPassword, ID string) error
 	UpdateDataUserSecurity(ctx context.Context, sessionRecord bool, tenant string) error

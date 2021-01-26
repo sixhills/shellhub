@@ -19,6 +19,7 @@ import (
 
 var ErrWrongParamsType = errors.New("wrong parameters type")
 var ErrDuplicateID = errors.New("user already member of this namespace")
+var ErrUnauthorized = errors.New("unauthorized")
 var ErrUserNotFound = errors.New("user not found")
 
 type Store struct {
@@ -807,7 +808,7 @@ func (s *Store) DeleteFirewallRule(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) GetRecord(ctx context.Context, uid models.UID) ([]models.RecordedSession, int, error) {
+func (s *Store) GetRecord(ctx context.Context, uid models.UID, ownerUsername string) ([]models.RecordedSession, int, error) {
 	sessionRecord := make([]models.RecordedSession, 0)
 
 	query := []bson.M{
@@ -816,6 +817,7 @@ func (s *Store) GetRecord(ctx context.Context, uid models.UID) ([]models.Recorde
 		},
 	}
 
+	var isOwner bool
 	//Only match for the respective tenant if requested
 	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
 		query = append(query, bson.M{
@@ -823,7 +825,17 @@ func (s *Store) GetRecord(ctx context.Context, uid models.UID) ([]models.Recorde
 				"tenant_id": tenant.ID,
 			},
 		})
+		ns, _ := s.GetNamespace(ctx, tenant.ID)
+		user, _ := s.GetUserByUsername(ctx, ownerUsername)
+		if ns != nil && user != nil {
+			isOwner = ns.Owner == user.ID
+		}
 	}
+
+	if !isOwner {
+		return sessionRecord, 0, ErrUnauthorized
+	}
+
 	cursor, err := s.db.Collection("recorded_sessions").Aggregate(ctx, query)
 	if err != nil {
 		return sessionRecord, 0, err
@@ -859,6 +871,7 @@ func (s *Store) GetRecord(ctx context.Context, uid models.UID) ([]models.Recorde
 	}
 	return sessionRecord, count, nil
 }
+
 func (s *Store) UpdateUID(ctx context.Context, oldUID models.UID, newUID models.UID) error {
 	_, err := s.db.Collection("sessions").UpdateMany(ctx, bson.M{"device_uid": oldUID}, bson.M{"$set": bson.M{"device_uid": newUID}})
 	return err
