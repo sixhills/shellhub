@@ -13,7 +13,7 @@
       <v-spacer />
       <v-spacer />
       <FirewallRuleFormDialog
-        v-if="isOwner"
+        v-if="isOwner && getNumberFirewallRules != 0"
         data-test="firewall-dialog-field"
         :create-rule="true"
         @update="refresh"
@@ -27,7 +27,12 @@
       >See More</a>
     </p>
 
-    <v-card class="mt-2">
+    <BoxMessage class="align-center" />
+
+    <v-card
+      v-if="getNumberFirewallRules != 0"
+      class="mt-2"
+    >
       <v-app-bar
         flat
         color="transparent"
@@ -36,6 +41,8 @@
       </v-app-bar>
 
       <v-divider />
+
+      <!-- <BoxMessage /> -->
 
       <v-card-text class="pa-0">
         <v-data-table
@@ -109,6 +116,8 @@
 
 <script>
 
+import BoxMessage from '@/components/box/BoxMessage';
+
 import FirewallRuleFormDialog from '@/components/firewall_rules/FirewallRulesFormDialog';
 import FirewallDelete from '@/components/firewall_rules/FirewallRulesDelete';
 
@@ -118,6 +127,7 @@ export default {
   components: {
     FirewallDelete,
     FirewallRuleFormDialog,
+    BoxMessage,
   },
 
   data() {
