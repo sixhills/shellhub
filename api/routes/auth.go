@@ -21,6 +21,7 @@ const (
 	AuthUserURLV2    = "/auth/user"
 	AuthUserTokenURL = "/auth/token/:tenant"
 	AuthPublicKeyURL = "/auth/ssh"
+	AuthTokenURL     = "/auth/token/:namespace"
 )
 
 func AuthRequest(c apicontext.Context) error {
@@ -50,6 +51,17 @@ func AuthRequest(c apicontext.Context) error {
 
 		// Extract device UID from JWT
 		c.Response().Header().Set(api.DeviceUIDHeader, claims.UID)
+
+		return nil
+	case "token":
+		var claims models.TokenAuthClaims
+
+		if err := DecodeMap(rawClaims, &claims); err != nil {
+			return err
+		}
+
+		c.Response().Header().Set("X-ID", claims.ID)
+		c.Response().Header().Set("X-Tenant-ID", claims.TenantID)
 
 		return nil
 	}
@@ -156,6 +168,23 @@ func AuthPublicKey(c apicontext.Context) error {
 	res, err := svc.AuthPublicKey(c.Ctx(), &req)
 	if err != nil {
 		return echo.ErrUnauthorized
+	}
+
+	return c.JSON(http.StatusOK, res)
+}
+
+func AuthToken(c apicontext.Context) error {
+	var req models.TokenAuthRequest
+
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	svc := authsvc.NewService(c.Store(), nil, nil)
+
+	res, err := svc.AuthToken(c.Ctx(), &req)
+	if err != nil {
+		return err
 	}
 
 	return c.JSON(http.StatusOK, res)

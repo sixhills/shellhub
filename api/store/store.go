@@ -71,4 +71,8 @@ type Store interface {
 	AddNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error)
 	RemoveNamespaceUser(ctx context.Context, namespace, ID string) (*models.Namespace, error)
 	GetSomeNamespace(ctx context.Context, ID string) (*models.Namespace, error)
+	CreateToken(ctx context.Context, namespace string, token *models.Token) (*models.Token, error)
+	GetToken(ctx context.Context, namespace string) (*models.Token, error)
+	DeleteToken(ctx context.Context, namespace string) error
+	ChangePermission(ctx context.Context, tokenID string) error
 }

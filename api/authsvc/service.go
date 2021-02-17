@@ -30,6 +30,7 @@ type Service interface {
 	AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error)
 	AuthPublicKey(ctx context.Context, req *models.PublicKeyAuthRequest) (*models.PublicKeyAuthResponse, error)
 	AuthSwapToken(ctx context.Context, ID, tenant string) (*models.UserAuthResponse, error)
+	AuthToken(ctx context.Context, req *models.TokenAuthRequest) (*models.TokenAuthResponse, error)
 	PublicKey() *rsa.PublicKey
 }
 
@@ -274,6 +275,36 @@ func (s *service) AuthSwapToken(ctx context.Context, username, tenant string) (*
 	}
 
 	return nil, nil
+}
+
+func (s *service) AuthToken(ctx context.Context, req *models.TokenAuthRequest) (*models.TokenAuthResponse, error) {
+	id := sha256.Sum256(structhash.Dump(req.Name, 1))
+
+	namespace, err := s.store.GetNamespace(ctx, req.Name)
+	if err != nil && err != store.ErrNamespaceNoDocuments {
+		return nil, err
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.TokenAuthClaims{
+		ID:       hex.EncodeToString(id[:]),
+		TenantID: namespace.TenantID,
+		AuthClaims: models.AuthClaims{
+			Claims: "token",
+		},
+	})
+
+	tokenStr, err := token.SignedString(s.privKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.TokenAuthResponse{
+		ID:        hex.EncodeToString(id[:]),
+		Token:     tokenStr,
+		TenantID:  namespace.TenantID,
+		ReadOnly:  true,
+		Namespace: namespace.Name,
+	}, nil
 }
 
 func (s *service) PublicKey() *rsa.PublicKey {

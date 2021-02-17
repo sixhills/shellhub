@@ -67,6 +67,7 @@ func main() {
 	internalAPI.GET(routes.AuthUserTokenURL, apicontext.Handler(routes.AuthGetToken))
 	publicAPI.POST(routes.AuthPublicKeyURL, apicontext.Handler(routes.AuthPublicKey))
 	publicAPI.GET(routes.AuthUserTokenURL, apicontext.Handler(routes.AuthSwapToken))
+	publicAPI.POST(routes.AuthTokenURL, apicontext.Handler(routes.AuthToken))
 
 	publicAPI.PUT(routes.UpdateUserURL, apicontext.Handler(routes.UpdateUser))
 	publicAPI.PUT(routes.UpdateUserSecurityURL, apicontext.Handler(routes.UpdateUserSecurity))
@@ -108,6 +109,10 @@ func main() {
 	publicAPI.PUT(routes.EditNamespaceURL, apicontext.Handler(routes.EditNamespace))
 	publicAPI.PATCH(routes.AddNamespaceUserURL, apicontext.Handler(routes.AddNamespaceUser))
 	publicAPI.PATCH(routes.RemoveNamespaceUserURL, apicontext.Handler(routes.RemoveNamespaceUser))
+	publicAPI.POST(routes.CreateTokenURL, apicontext.Handler(routes.CreateToken))
+	publicAPI.POST(routes.DeleteTokenURL, apicontext.Handler(routes.DeleteToken))
+	publicAPI.GET(routes.GetTokenURL, apicontext.Handler(routes.GetToken))
+	publicAPI.POST(routes.ChangePermissionURL, apicontext.Handler(routes.ChangePermission))
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

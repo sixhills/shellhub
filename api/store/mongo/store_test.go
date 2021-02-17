@@ -1294,10 +1294,10 @@ func TestCreateNamespace(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
-		Name:     "namespace",
-		Owner:    "owner",
-		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:  []string{"owner"},
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []string{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1316,10 +1316,10 @@ func TestDeleteNamespace(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
-		Name:     "namespace",
-		Owner:    "owner",
-		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:  []string{"owner"},
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []string{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1341,10 +1341,10 @@ func TestGetNamespace(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
-		Name:     "namespace",
-		Owner:    "owner",
-		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:  []string{"owner"},
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []string{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1366,10 +1366,10 @@ func TestListNamespaces(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
-		Name:     "namespace",
-		Owner:    "owner",
-		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:  []string{"owner"},
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []string{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1400,10 +1400,10 @@ func TestAddNamespaceUser(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
-		Name:     "namespace",
-		Owner:    "owner",
-		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:  []string{"owner"},
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []string{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1435,10 +1435,10 @@ func TestRemoveNamespaceUser(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	_, err = mongostore.CreateNamespace(ctx, &models.Namespace{
-		Name:     "namespace",
-		Owner:    "owner",
-		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-		Members:  []string{"owner"},
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []string{"owner"},
 		MaxDevices: -1,
 	})
 	assert.NoError(t, err)
@@ -1623,5 +1623,106 @@ func TestDeletePublicKey(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = mongostore.DeletePublicKey(ctx, newKey.Fingerprint, newKey.TenantID)
+	assert.NoError(t, err)
+}
+
+func TestGetToken(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant", Token: models.Token{
+		ID:       "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		ReadOnly: true,
+	},
+	}
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	_, err = mongostore.GetToken(ctx, namespace.Name)
+	assert.NoError(t, err)
+}
+
+func TestCreateToken(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant"}
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	_, err = mongostore.CreateToken(ctx, namespace.Name, &models.Token{
+		ID:       "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		ReadOnly: true,
+	},
+	)
+
+	assert.NoError(t, err)
+}
+
+func TestDeleteToken(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant", Token: models.Token{
+		ID:       "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		ReadOnly: true,
+	},
+	}
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	err = mongostore.DeleteToken(ctx, namespace.Name)
+	assert.NoError(t, err)
+}
+
+func TestChangePermission(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"))
+
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email"}
+	namespace := models.Namespace{Name: "name", Owner: "owner", TenantID: "tenant", Token: models.Token{
+		ID:       "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		ReadOnly: true,
+	},
+	}
+
+	_, err := db.Client().Database("test").Collection("users").InsertOne(ctx, user)
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("namespaces").InsertOne(ctx, namespace)
+	assert.NoError(t, err)
+
+	err = mongostore.ChangePermission(ctx, namespace.Name)
 	assert.NoError(t, err)
 }

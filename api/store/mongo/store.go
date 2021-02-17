@@ -1469,6 +1469,77 @@ func (s *Store) GetSomeNamespace(ctx context.Context, ID string) (*models.Namesp
 	return ns, nil
 }
 
+func (s *Store) GetToken(ctx context.Context, namespace string) (*models.Token, error) {
+	token := new(models.Token)
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"name": namespace}).Decode(&token); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, store.ErrRecordNotFound
+		}
+
+		return nil, err
+	}
+
+	return token, nil
+}
+
+func (s *Store) CreateToken(ctx context.Context, namespace string, token *models.Token) (*models.Token, error) {
+	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"name": namespace}, bson.M{"$set": bson.M{"token": token}})
+	if err != nil {
+		return nil, err
+	}
+
+	if err == mongo.ErrNoDocuments {
+		return nil, store.ErrRecordNotFound
+	}
+
+	if result.ModifiedCount == 0 {
+		return nil, ErrUserNotFound
+	}
+
+	return token, nil
+}
+
+func (s *Store) DeleteToken(ctx context.Context, namespace string) error {
+	result, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"name": namespace}, bson.M{"$unset": bson.M{"token": ""}})
+	if err != nil {
+		return err
+	}
+
+	if err == mongo.ErrNoDocuments {
+		return store.ErrRecordNotFound
+	}
+
+	if result.ModifiedCount == 0 {
+		return ErrUserNotFound
+	}
+
+	return nil
+}
+
+func (s *Store) ChangePermission(ctx context.Context, namespace string) error {
+	token, err := s.GetToken(ctx, namespace)
+
+	if err == mongo.ErrNoDocuments {
+		return store.ErrRecordNotFound
+	}
+
+	if token == nil {
+		return store.ErrRecordNotFound
+	}
+
+	if token.ReadOnly {
+		_, err = s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"name": namespace}, bson.M{"$set": bson.M{"read_only": false}})
+	} else {
+		_, err = s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"name": namespace}, bson.M{"$set": bson.M{"read_only": true}})
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func buildPaginationQuery(pagination paginator.Query) []bson.M {
 	if pagination.PerPage == -1 {
 		return nil

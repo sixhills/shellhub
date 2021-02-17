@@ -114,3 +114,31 @@ func TestAuthUser(t *testing.T) {
 
 	mock.AssertExpectations(t)
 }
+
+func TestAuthToken(t *testing.T) {
+	mock := &mocks.Store{}
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	assert.NoError(t, err)
+
+	s := NewService(store.Store(mock), privateKey, &privateKey.PublicKey)
+
+	ctx := context.TODO()
+
+	authReq := &models.TokenAuthRequest{
+		Name:     "group1",
+		TenantID: "tenant",
+	}
+
+	namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "tenant"}
+	mock.On("GetNamespace", ctx, namespace.Name).Return(namespace, nil).Once()
+
+	authRes, err := s.AuthToken(ctx, authReq)
+	assert.NoError(t, err)
+
+	assert.Equal(t, namespace.Name, authRes.Namespace)
+	assert.Equal(t, namespace.TenantID, authRes.TenantID)
+	assert.NotEmpty(t, authRes.Token)
+
+	mock.AssertExpectations(t)
+}
