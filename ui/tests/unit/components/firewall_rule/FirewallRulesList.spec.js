@@ -90,6 +90,7 @@ describe('FirewallRulesList', () => {
   it('Process data in the computed', () => {
     expect(wrapper.vm.getFirewallRules).toEqual(firewalls);
     expect(wrapper.vm.getNumberFirewallRules).toEqual(numberFirewalls);
+    expect(wrapper.vm.hasFirewallRules).toEqual(true);
   });
   it('Hides dialogs and delete when the user is not the owner', () => {
     wrapper2 = mount(FirewallRulesList, {
@@ -102,6 +103,34 @@ describe('FirewallRulesList', () => {
     expect(wrapper2.find('[data-test="firewall-dialog-field-2"]').exists()).toBe(false);
     expect(wrapper2.find('[data-test="firewall-delete-field"]').exists()).toBe(false);
   });
+  it('Shows box message when there is no firewall-rules', () => {
+    const wrapperNoFirewalls = mount(FirewallRulesList, {
+      store: new Vuex.Store({
+        namespaced: true,
+        state: {
+          firewalls,
+          numberFirewalls: 0,
+          owner,
+        },
+        getters: {
+          'firewallrules/list': (state) => state.firewalls,
+          'firewallrules/getNumberFirewalls': (state) => state.numberFirewalls,
+          'namespaces/owner': (state) => state.owner,
+        },
+        actions: {
+          'firewallrules/fetch': () => {
+          },
+        },
+      }),
+      localVue,
+      stubs: ['fragment'],
+      vuetify,
+    });
+    expect(wrapperNoFirewalls.find('[data-test="table-firewall"]').exists()).toBe(false);
+    expect(wrapperNoFirewalls.find('[data-test="firewall-dialog-field"]').exists()).toBe(false);
+    expect(wrapperNoFirewalls.vm.hasFirewallRules).toEqual(false);
+    expect(wrapperNoFirewalls.find('[data-test="box-message"]').exists()).toBe(true);
+  });
   it('Renders the template with data', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;
@@ -109,5 +138,6 @@ describe('FirewallRulesList', () => {
     expect(wrapper.find('[data-test="firewall-dialog-field"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="firewall-dialog-field-2"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="firewall-delete-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="box-message"]').exists()).toBe(false);
   });
 });

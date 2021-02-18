@@ -13,7 +13,7 @@
       <v-spacer />
       <v-spacer />
       <FirewallRuleFormDialog
-        v-if="isOwner && getNumberFirewallRules != 0"
+        v-if="isOwner && hasFirewallRules"
         data-test="firewall-dialog-field"
         :create-rule="true"
         @update="refresh"
@@ -27,10 +27,9 @@
       >See More</a>
     </p>
 
-    <BoxMessage class="align-center" />
-
     <v-card
-      v-if="getNumberFirewallRules != 0"
+      v-if="hasFirewallRules"
+      data-test="table-firewall"
       class="mt-2"
     >
       <v-app-bar
@@ -111,6 +110,11 @@
         </v-data-table>
       </v-card-text>
     </v-card>
+    <BoxMessage
+      v-if="!hasFirewallRules"
+      data-test="box-message"
+      class="align-center"
+    />
   </fragment>
 </template>
 
@@ -179,6 +183,10 @@ export default {
   computed: {
     getFirewallRules() {
       return this.$store.getters['firewallrules/list'];
+    },
+
+    hasFirewallRules() {
+      return this.getNumberFirewallRules > 0;
     },
 
     getNumberFirewallRules() {
