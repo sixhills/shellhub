@@ -29,6 +29,7 @@ type Session struct {
 	UID           string            `json:"uid"`
 	IPAddress     string            `json:"ip_address"`
 	Authenticated bool              `json:"authenticated"`
+	Lookup        map[string]string `json:"-"`
 }
 
 type ConfigOptions struct {
@@ -68,6 +69,7 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	if !strings.Contains(s.Target, ".") {
 		device := new(models.Device)
 		res, _, errs := gorequest.New().Get("http://api:8080/api/devices/" + s.Target).EndStruct(&device)
+
 		if len(errs) > 0 || res.StatusCode != http.StatusOK {
 			return nil, ErrInvalidSessionTarget
 		}
@@ -102,6 +104,7 @@ func NewSession(target string, session sshserver.Session) (*Session, error) {
 	}
 
 	s.Target = device.UID
+	s.Lookup = lookup
 
 	if os.Getenv("SHELLHUB_ENTERPRISE") == "true" {
 		res, _, errs := gorequest.New().Get("http://cloud-api:8080/internal/firewall/rules/evaluate").Query(lookup).End()

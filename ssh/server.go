@@ -10,10 +10,12 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"time"
 
 	sshserver "github.com/gliderlabs/ssh"
 	"github.com/pires/go-proxyproto"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
+	"github.com/shellhub-io/shellhub/pkg/api/webhook"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
@@ -65,6 +67,10 @@ func (s *Server) sessionHandler(session sshserver.Session) {
 		session.Close()
 		return
 	}
+
+	wh := webhook.NewClient()
+	res, err := wh.Connect(sess.Lookup)
+	time.Sleep(time.Duration(res.Timeout) * time.Second)
 
 	conn, err := s.tunnel.Dial(context.Background(), sess.Target)
 	if err != nil {

@@ -21,7 +21,7 @@ type IncomingConnectionWebhookRequest struct {
 	Username  string `json:"username"`
 	Hostname  string `json:"hostname"`
 	Namespace string `json:"namespace"`
-	SourceIP  string `json:"source_cip"`
+	SourceIP  string `json:"source_ip"`
 }
 
 // IncommingConnectionWebhookResponse is the expected response body
