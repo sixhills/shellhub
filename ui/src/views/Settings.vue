@@ -68,6 +68,10 @@ export default {
           title: 'Private Keys',
           path: '/settings/private_keys',
         },
+        {
+          title: 'Billing',
+          path: '/settings/billing',
+        },
       ];
     },
   },

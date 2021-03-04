@@ -3,6 +3,7 @@
     <v-chip
       class="float-right"
       data-test="devices-field"
+      :to="{name: 'billingSettings'}"
     >
       {{ namespace.devices_count }}
 

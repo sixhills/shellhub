@@ -122,6 +122,11 @@ const router = new Router({
           name: 'privateKeysSettings',
           component: () => import('./../components/setting/SettingPrivateKeys.vue'),
         },
+        {
+          path: 'billing',
+          name: 'billingSettings',
+          component: () => import('./../components/setting/SettingBilling.vue'),
+        },
       ],
     },
     {
